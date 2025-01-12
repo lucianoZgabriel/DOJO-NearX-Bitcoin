@@ -3,19 +3,80 @@
 @tailwind utilities;
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #1e1e2f;
+  --foreground: #ffffff;
+  --primary: #4ade80;
+  --secondary: #60a5fa;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --background: #1e1e2f;
+    --foreground: #ffffff;
+  }
+}
+
+@media (prefers-color-scheme: light) {
+  :root {
+    --background: #ffffff;
+    --foreground: #171717;
   }
 }
 
 body {
   color: var(--foreground);
   background: var(--background);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-geist-sans), Arial, Helvetica, sans-serif;
+  line-height: 1.6;
+  margin: 0;
+  padding: 0;
+}
+
+a {
+  color: var(--primary);
+  text-decoration: none;
+}
+
+a:hover {
+  color: var(--secondary);
+  text-decoration: underline;
+}
+
+input,
+button {
+  font-family: inherit;
+}
+
+input {
+  border: 1px solid var(--foreground);
+  padding: 0.5rem;
+  border-radius: 0.25rem;
+  background: transparent;
+  color: var(--foreground);
+}
+
+input:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 2px var(--primary);
+}
+
+button {
+  cursor: pointer;
+  padding: 0.5rem 1rem;
+  border-radius: 0.25rem;
+  border: none;
+  background: var(--primary);
+  color: var(--background);
+  transition: background 0.2s;
+}
+
+button:hover {
+  background: var(--secondary);
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 1rem;
 }
