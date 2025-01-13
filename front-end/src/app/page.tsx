@@ -1,133 +1,43 @@
+// src/app/page.tsx
 "use client";
 
-import SearchBar from "./components/SearchBar";
 import { useState } from "react";
-import { fetchBlockByNumber, fetchTransactionById } from "./api/bitcoinApi";
-
-interface Transaction {
-  txid: string;
-  amount: number;
-  confirmations: number;
-  time: number;
-  details: {
-    address: string;
-    amount: number;
-    category: string;
-  }[];
-}
-
-interface Block {
-  hash: string;
-  confirmations: number;
-  height: number;
-  time: number;
-  difficulty: number;
-  nTx: number;
-  tx: string[];
-}
+import SearchBar from "./components/common/SearchBar";
+import BlockDetails from "./components/blocks/BlockDetails";
+import TransactionDetails from "./components/transactions/TransactionDetails";
+import ErrorMessage from "./components/common/ErrorMessage";
+import LoadingSpinner from "./components/common/LoadingSpinner";
+import { blocksApi } from "./api/blocks";
+import { transactionsApi } from "./api/transactions";
+import { useQuery } from "@tanstack/react-query";
 
 export default function Home() {
-  const [result, setResult] = useState(null);
-  const [error, setError] = useState("");
-  const [type, setType] = useState("");
+  const [searchType, setSearchType] = useState<"block" | "transaction" | null>(
+    null,
+  );
+  const [searchQuery, setSearchQuery] = useState<string>("");
 
-  const handleBlockSearch = async (query: string) => {
-    try {
-      setError("");
-      const block = await fetchBlockByNumber(parseInt(query));
-      setResult(block);
-      setType("block");
-    } catch (err: unknown) {
-      if (err instanceof Error) {
-        setError(err.message);
-      } else {
-        setError("Erro ao buscar bloco. Verifique o número e tente novamente.");
-      }
-      setResult(null);
-    }
+  const blockQuery = useQuery({
+    queryKey: ["block", searchQuery],
+    queryFn: () => blocksApi.getByNumber(parseInt(searchQuery)),
+    enabled: searchType === "block" && !!searchQuery,
+  });
+
+  const transactionQuery = useQuery({
+    queryKey: ["transaction", searchQuery],
+    queryFn: () => transactionsApi.getById(searchQuery),
+    enabled: searchType === "transaction" && !!searchQuery,
+  });
+
+  const handleBlockSearch = (query: string) => {
+    setSearchType("block");
+    setSearchQuery(query);
   };
 
-  const handleTransactionSearch = async (query: string) => {
-    try {
-      setError("");
-      const transaction = await fetchTransactionById(query);
-      setResult(transaction);
-      setType("transaction");
-    } catch (err: unknown) {
-      if (err instanceof Error) {
-        setError(err.message);
-      } else {
-        setError(
-          "Erro ao buscar transação. Verifique o ID da transação e tente novamente.",
-        );
-      }
-      setResult(null);
-    }
+  const handleTransactionSearch = (query: string) => {
+    setSearchType("transaction");
+    setSearchQuery(query);
   };
-
-  const formatBlock = (block: Block) => (
-    <div className="space-y-4">
-      <p>
-        <strong>Hash:</strong> {block.hash}
-      </p>
-      <p>
-        <strong>Confirmações:</strong> {block.confirmations}
-      </p>
-      <p>
-        <strong>Altura:</strong> {block.height}
-      </p>
-      <p>
-        <strong>Data/Hora:</strong>{" "}
-        {new Date(block.time * 1000).toLocaleString()}
-      </p>
-      <p>
-        <strong>Dificuldade:</strong> {block.difficulty}
-      </p>
-      <p>
-        <strong>Transações:</strong> {block.nTx}
-      </p>
-      <div>
-        <strong>Transações (IDs):</strong>
-        <ul className="list-disc list-inside">
-          {block.tx.slice(0, 5).map((tx: string, idx: number) => (
-            <li key={idx}>{tx}</li>
-          ))}
-          {block.tx.length > 5 && <p>... e mais {block.tx.length - 5}.</p>}
-        </ul>
-      </div>
-    </div>
-  );
-
-  const formatTransaction = (transaction: Transaction) => (
-    <div className="space-y-4">
-      <p>
-        <strong>ID da Transação:</strong> {transaction.txid}
-      </p>
-      <p>
-        <strong>Valor:</strong> {transaction.amount} BTC
-      </p>
-      <p>
-        <strong>Confirmações:</strong> {transaction.confirmations}
-      </p>
-      <p>
-        <strong>Data/Hora:</strong>{" "}
-        {new Date(transaction.time * 1000).toLocaleString()}
-      </p>
-      <div>
-        <strong>Detalhes:</strong>
-        <ul className="list-disc list-inside">
-          {transaction.details.map(
-            (detail: Transaction["details"][0], idx: number) => (
-              <li key={idx}>
-                Endereço: {detail.address} | Valor: {detail.amount} BTC |
-                Categoria: {detail.category}
-              </li>
-            ),
-          )}
-        </ul>
-      </div>
-    </div>
-  );
 
   return (
     <div className="p-6 max-w-4xl mx-auto">
@@ -151,15 +61,27 @@ export default function Home() {
         />
       </section>
 
-      {error && <p className="text-red-500 mt-4">{error}</p>}
-
-      {result && (
+      {/* Block Results */}
+      {blockQuery.isLoading && <LoadingSpinner />}
+      {blockQuery.error && (
+        <ErrorMessage message={(blockQuery.error as Error).message} />
+      )}
+      {blockQuery.data && (
         <div className="mt-6 p-4 border rounded bg-dark text-white">
-          <h2 className="text-2xl font-bold mb-4">
-            {type === "block" ? "Detalhes do Bloco" : "Detalhes da Transação"}
-          </h2>
-          {type === "block" && formatBlock(result)}
-          {type === "transaction" && formatTransaction(result)}
+          <h2 className="text-2xl font-bold mb-4">Detalhes do Bloco</h2>
+          <BlockDetails block={blockQuery.data} />
+        </div>
+      )}
+
+      {/* Transaction Results */}
+      {transactionQuery.isLoading && <LoadingSpinner />}
+      {transactionQuery.error && (
+        <ErrorMessage message={(transactionQuery.error as Error).message} />
+      )}
+      {transactionQuery.data && (
+        <div className="mt-6 p-4 border rounded bg-dark text-white">
+          <h2 className="text-2xl font-bold mb-4">Detalhes da Transação</h2>
+          <TransactionDetails transaction={transactionQuery.data} />
         </div>
       )}
     </div>
