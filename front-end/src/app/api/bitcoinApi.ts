@@ -1,11 +1,9 @@
 import axios, { AxiosError } from "axios";
 
-// Configuração base do Axios
 const api = axios.create({
-  baseURL: "http://localhost:4000", // Substitua pelo endereço correto do seu back-end
+  baseURL: "http://localhost:4000",
 });
 
-// Buscar um bloco pelo número
 export const fetchBlockByNumber = async (blockNumber: number) => {
   try {
     const response = await api.get(`/block/${blockNumber}`);
@@ -18,7 +16,6 @@ export const fetchBlockByNumber = async (blockNumber: number) => {
   }
 };
 
-// Buscar uma transação pelo ID
 export const fetchTransactionById = async (txid: string) => {
   try {
     const response = await api.get(`/transaction/${txid}`);
