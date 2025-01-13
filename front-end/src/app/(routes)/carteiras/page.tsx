@@ -5,6 +5,7 @@ import { walletsApi } from "@/app/api/wallets";
 import { useQuery } from "@tanstack/react-query";
 import LoadingSpinner from "@/app/components/common/LoadingSpinner";
 import ErrorMessage from "@/app/components/common/ErrorMessage";
+import WalletActions from "@/app/components/wallets/WalletActions";
 
 interface Wallet {
   label: string;
@@ -119,6 +120,9 @@ export default function WalletsPage() {
                     </ul>
                   </div>
                 )}
+                <div className="mt-4">
+                  <WalletActions walletAddress={wallet.addresses[0]} />
+                </div>
               </div>
             </div>
           ))}

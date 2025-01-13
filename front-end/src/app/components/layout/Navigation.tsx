@@ -40,6 +40,16 @@ export default function Navigation() {
       >
         Status
       </Link>
+      <Link
+        href="/mine"
+        className={`${
+          isActive("/mine")
+            ? "text-primary font-medium"
+            : "text-white hover:text-primary"
+        }`}
+      >
+        Mine Blocks
+      </Link>
     </nav>
   );
 }
