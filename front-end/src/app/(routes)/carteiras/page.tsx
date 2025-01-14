@@ -2,10 +2,11 @@
 
 import { useState } from "react";
 import { walletsApi } from "@/app/api/wallets";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import LoadingSpinner from "@/app/components/common/LoadingSpinner";
 import ErrorMessage from "@/app/components/common/ErrorMessage";
 import WalletActions from "@/app/components/wallets/WalletActions";
+import { Wallet as WalletIcon, Plus } from "lucide-react";
 
 interface Wallet {
   label: string;
@@ -20,6 +21,16 @@ interface Wallet {
 
 export default function WalletsPage() {
   const [newWalletLabel, setNewWalletLabel] = useState("");
+  const queryClient = useQueryClient();
+
+  // Mutation para criar carteira
+  const createWalletMutation = useMutation({
+    mutationFn: (label: string) => walletsApi.create(label),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["wallets"] });
+      setNewWalletLabel("");
+    },
+  });
 
   const {
     data: wallets,
@@ -29,7 +40,6 @@ export default function WalletsPage() {
     queryKey: ["wallets"],
     queryFn: async () => {
       const walletsData = await walletsApi.listAll();
-
       const walletsWithBalance = await Promise.all(
         walletsData.map(async (wallet: Wallet) => {
           if (wallet.addresses && wallet.addresses.length > 0) {
@@ -41,93 +51,132 @@ export default function WalletsPage() {
                 transactions: walletInfo.transactions,
               };
             } catch (err) {
-              console.error(`Erro ao buscar saldo para ${wallet.label}:`, err);
+              console.error(`Error fetching balance for ${wallet.label}:`, err);
               return wallet;
             }
           }
           return wallet;
         }),
       );
-
       return walletsWithBalance;
     },
   });
 
-  const handleCreateWallet = (e: React.FormEvent) => {
+  const handleCreateWallet = async (e: React.FormEvent) => {
     e.preventDefault();
     if (newWalletLabel.trim()) {
-      setNewWalletLabel("");
+      createWalletMutation.mutate(newWalletLabel.trim());
     }
   };
 
   return (
-    <div className="p-6 max-w-4xl mx-auto">
-      <h1 className="text-3xl font-bold text-center mb-8">Carteiras Bitcoin</h1>
-
-      <form onSubmit={handleCreateWallet} className="mb-8">
-        <div className="flex gap-4">
-          <input
-            type="text"
-            value={newWalletLabel}
-            onChange={(e) => setNewWalletLabel(e.target.value)}
-            placeholder="Nome da nova carteira"
-            className="flex-1 p-2 border rounded"
-          />
-          <button
-            type="submit"
-            className="bg-primary text-white px-4 py-2 rounded hover:bg-opacity-90"
-          >
-            Criar Carteira
-          </button>
-        </div>
-      </form>
-
-      {isLoading && <LoadingSpinner />}
-      {error && <ErrorMessage message={(error as Error).message} />}
-
-      {wallets && (
-        <div className="grid gap-4">
-          {wallets.map((wallet) => (
-            <div
-              key={`${wallet.label}-${wallet.addresses[0]}`}
-              className="p-4 border rounded bg-dark text-white"
+    <div className="min-h-screen bg-dark">
+      <div className="max-w-7xl mx-auto px-4 py-8">
+        <div className="flex items-center justify-between mb-8">
+          <h1 className="text-4xl font-bold bg-gradient-to-r from-neonGreen to-neonBlue bg-clip-text text-transparent">
+            Bitcoin Wallets
+          </h1>
+          <form onSubmit={handleCreateWallet} className="flex gap-4">
+            <input
+              type="text"
+              value={newWalletLabel}
+              onChange={(e) => setNewWalletLabel(e.target.value)}
+              placeholder="New wallet name"
+              className="px-4 py-2 rounded bg-white/5 border border-white/10 text-white placeholder-gray-400 
+                focus:border-neonGreen/50 focus:ring-1 focus:ring-neonGreen/50"
+            />
+            <button
+              type="submit"
+              disabled={
+                createWalletMutation.isPending || !newWalletLabel.trim()
+              }
+              className="flex items-center gap-2 bg-neonGreen text-dark px-4 py-2 rounded font-medium 
+                hover:bg-opacity-90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              <div className="space-y-2">
-                <p className="text-lg">
-                  <strong>Label:</strong> {wallet.label}
-                </p>
-                <p className="break-all">
-                  <strong>Endereço:</strong>{" "}
-                  {wallet.addresses[0] || "Endereço não disponível"}
-                </p>
-                {wallet.balance !== undefined && (
-                  <p>
-                    <strong>Saldo:</strong> {wallet.balance} BTC
-                  </p>
-                )}
-                {wallet.transactions && wallet.transactions.length > 0 && (
-                  <div>
-                    <p className="mt-2">
-                      <strong>Transações Recentes:</strong>
-                    </p>
-                    <ul className="list-disc list-inside">
-                      {wallet.transactions.map((tx) => (
-                        <li key={tx.txid} className="text-sm">
-                          ID: {tx.txid.substring(0, 8)}... | Valor: {tx.amount}{" "}
-                          BTC
-                        </li>
-                      ))}
-                    </ul>
+              <Plus className="w-5 h-5" />
+              {createWalletMutation.isPending ? "Creating..." : "Create Wallet"}
+            </button>
+          </form>
+        </div>
+
+        {/* Mensagem de erro da criação */}
+        {createWalletMutation.error && (
+          <div className="mb-4">
+            <ErrorMessage
+              message={(createWalletMutation.error as Error).message}
+            />
+          </div>
+        )}
+
+        {isLoading && <LoadingSpinner />}
+        {error && <ErrorMessage message={(error as Error).message} />}
+
+        {wallets && wallets.length > 0 ? (
+          <div className="grid gap-6">
+            {wallets.map((wallet) => (
+              <div
+                key={`${wallet.label}-${wallet.addresses[0]}`}
+                className="bg-white/5 rounded-lg border border-white/10 overflow-hidden"
+              >
+                <div className="p-6">
+                  <div className="flex items-start justify-between mb-4">
+                    <div className="flex items-center gap-3">
+                      <WalletIcon className="w-6 h-6 text-neonGreen" />
+                      <h2 className="text-xl font-semibold">{wallet.label}</h2>
+                    </div>
+                    {wallet.balance !== undefined && (
+                      <div className="text-right">
+                        <p className="text-sm text-gray-400">Balance</p>
+                        <p className="text-xl font-semibold text-neonGreen">
+                          {wallet.balance} BTC
+                        </p>
+                      </div>
+                    )}
                   </div>
-                )}
-                <div className="mt-4">
+
+                  <div className="space-y-2">
+                    <p className="text-sm text-gray-400">Address</p>
+                    <p className="font-mono text-sm break-all bg-white/5 p-2 rounded">
+                      {wallet.addresses[0] || "Address not available"}
+                    </p>
+
+                    {wallet.transactions && wallet.transactions.length > 0 && (
+                      <div className="mt-4">
+                        <p className="text-sm text-gray-400 mb-2">
+                          Recent Transactions
+                        </p>
+                        <div className="bg-white/5 rounded p-3 space-y-2">
+                          {wallet.transactions.map((tx) => (
+                            <div
+                              key={tx.txid}
+                              className="flex justify-between items-center text-sm"
+                            >
+                              <span className="font-mono">
+                                {tx.txid.substring(0, 8)}...
+                              </span>
+                              <span className="text-neonGreen">
+                                {tx.amount} BTC
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
                   <WalletActions walletAddress={wallet.addresses[0]} />
                 </div>
               </div>
-            </div>
-          ))}
-        </div>
-      )}
+            ))}
+          </div>
+        ) : (
+          <div className="text-center py-12">
+            <p className="text-gray-400">
+              No wallets found. Create one to get started!
+            </p>
+          </div>
+        )}
+      </div>
     </div>
   );
 }

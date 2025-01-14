@@ -9,7 +9,7 @@ export const transactionsApi = {
     } catch (error: unknown) {
       if (error instanceof AxiosError) {
         throw new Error(
-          error.response?.data?.error || "Erro ao buscar a transação",
+          error.response?.data?.error || "Error fetching transaction",
         );
       }
       throw error;
@@ -23,7 +23,7 @@ export const transactionsApi = {
     } catch (error: unknown) {
       if (error instanceof AxiosError) {
         throw new Error(
-          error.response?.data?.error || "Erro ao enviar transação",
+          error.response?.data?.error || "Error sending transaction",
         );
       }
       throw error;

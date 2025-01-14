@@ -8,9 +8,7 @@ export const blocksApi = {
       return response.data;
     } catch (error: unknown) {
       if (error instanceof AxiosError) {
-        throw new Error(
-          error.response?.data?.error || "Erro ao buscar o bloco",
-        );
+        throw new Error(error.response?.data?.error || "Error fetching block");
       }
       throw error;
     }
@@ -22,9 +20,7 @@ export const blocksApi = {
       return response.data;
     } catch (error: unknown) {
       if (error instanceof AxiosError) {
-        throw new Error(
-          error.response?.data?.error || "Erro ao minerar blocos",
-        );
+        throw new Error(error.response?.data?.error || "Error mining blocks");
       }
       throw error;
     }

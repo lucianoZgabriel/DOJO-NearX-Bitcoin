@@ -8,9 +8,7 @@ export const walletsApi = {
       return response.data;
     } catch (error: unknown) {
       if (error instanceof AxiosError) {
-        throw new Error(
-          error.response?.data?.error || "Erro ao criar carteira",
-        );
+        throw new Error(error.response?.data?.error || "Error creating wallet");
       }
       throw error;
     }
@@ -22,9 +20,7 @@ export const walletsApi = {
       return response.data;
     } catch (error: unknown) {
       if (error instanceof AxiosError) {
-        throw new Error(
-          error.response?.data?.error || "Erro ao listar carteiras",
-        );
+        throw new Error(error.response?.data?.error || "Error listing wallets");
       }
       throw error;
     }
@@ -37,8 +33,7 @@ export const walletsApi = {
     } catch (error: unknown) {
       if (error instanceof AxiosError) {
         throw new Error(
-          error.response?.data?.error ||
-            "Erro ao buscar informações da carteira",
+          error.response?.data?.error || "Error fetching wallet information",
         );
       }
       throw error;
@@ -51,9 +46,7 @@ export const walletsApi = {
       return response.data;
     } catch (error: unknown) {
       if (error instanceof AxiosError) {
-        throw new Error(
-          error.response?.data?.error || "Erro ao adicionar fundos",
-        );
+        throw new Error(error.response?.data?.error || "Error adding funds");
       }
       throw error;
     }

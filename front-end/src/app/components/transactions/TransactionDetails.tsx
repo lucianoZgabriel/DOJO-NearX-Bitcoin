@@ -10,25 +10,25 @@ export default function TransactionDetails({
   return (
     <div className="space-y-4">
       <p>
-        <strong>ID da Transação:</strong> {transaction.txid}
+        <strong>Transaction ID:</strong> {transaction.txid}
       </p>
       <p>
-        <strong>Valor:</strong> {transaction.amount} BTC
+        <strong>Value:</strong> {transaction.amount} BTC
       </p>
       <p>
-        <strong>Confirmações:</strong> {transaction.confirmations}
+        <strong>Confirmations:</strong> {transaction.confirmations}
       </p>
       <p>
-        <strong>Data/Hora:</strong>{" "}
+        <strong>Date/Time:</strong>{" "}
         {new Date(transaction.time * 1000).toLocaleString()}
       </p>
       <div>
-        <strong>Detalhes:</strong>
+        <strong>Details:</strong>
         <ul className="list-disc list-inside">
           {transaction.details.map((detail, idx: number) => (
             <li key={idx}>
-              Endereço: {detail.address} | Valor: {detail.amount} BTC |
-              Categoria: {detail.category}
+              Address: {detail.address} | Value: {detail.amount} BTC | Category:{" "}
+              {detail.category}
             </li>
           ))}
         </ul>
