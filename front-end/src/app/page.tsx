@@ -67,7 +67,7 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-dark">
-      {/* Network Stats Section - Movido para o topo */}
+      {/* Network Stats Section*/}
       {isLoadingStatus ? (
         <div className="flex justify-center py-6">
           <LoadingSpinner />
@@ -188,7 +188,7 @@ export default function Home() {
                 )}
               </>
             )}
-            {/* Wallet Results - Nova seção */}
+            {/* Wallet Results*/}
             {searchType === "wallet" && (
               <>
                 {walletQuery.isLoading && <LoadingSpinner />}
