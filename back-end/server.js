@@ -7,8 +7,8 @@ app.use(express.json());
 app.use(
   cors({
     origin: "http://localhost:3000", // Endereço do front-end (ajuste conforme necessário)
-    methods: ["GET", "POST", "PUT", "DELETE"], // Métodos permitidos
-    allowedHeaders: ["Content-Type", "Authorization"], // Cabeçalhos permitidos
+    methods: ["GET", "POST", "PUT", "DELETE"],
+    allowedHeaders: ["Content-Type", "Authorization"],
   })
 );
 
@@ -57,7 +57,7 @@ app.get("/node-status", async (req, res) => {
 
 // 1. Gerar uma nova carteira
 app.post("/create-wallet", async (req, res) => {
-  const { label } = req.body; // Rótulo para identificar a carteira
+  const { label } = req.body;
   try {
     const address = await client.command("getnewaddress", label);
     res.json({ label, address });
@@ -69,7 +69,7 @@ app.post("/create-wallet", async (req, res) => {
 // 2. Listar todas as carteiras geradas (endereços)
 app.get("/list-wallets", async (req, res) => {
   try {
-    const wallets = await client.command("listlabels"); // Lista de rótulos
+    const wallets = await client.command("listlabels");
     const result = await Promise.all(
       wallets.map(async (label) => {
         const addresses = await client.command("getaddressesbylabel", label);
@@ -84,9 +84,36 @@ app.get("/list-wallets", async (req, res) => {
 
 // 3. Enviar Bitcoins
 app.post("/send", async (req, res) => {
-  const { address, amount } = req.body; // Para qual endereço e quanto enviar
+  const { fromAddress, toAddress, amount } = req.body;
   try {
-    const txId = await client.command("sendtoaddress", address, amount);
+    const utxos = await client.command("listunspent", 1, 9999999, [
+      fromAddress,
+    ]);
+    const balance = utxos.reduce((sum, utxo) => sum + utxo.amount, 0);
+
+    if (balance < amount) {
+      throw new Error("Insufficient funds");
+    }
+
+    const inputs = utxos.map((utxo) => ({
+      txid: utxo.txid,
+      vout: utxo.vout,
+    }));
+
+    const outputs = {};
+    outputs[toAddress] = amount;
+    const fee = 0.0001;
+    if (balance > amount + fee) {
+      outputs[fromAddress] = balance - amount - fee;
+    }
+
+    const rawTx = await client.command("createrawtransaction", inputs, outputs);
+    const signedTx = await client.command(
+      "signrawtransactionwithwallet",
+      rawTx
+    );
+    const txId = await client.command("sendrawtransaction", signedTx.hex);
+
     res.json({ txId });
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -100,7 +127,6 @@ app.post("/mine-blocks", async (req, res) => {
     // Gera um endereço para receber a recompensa
     const address = await client.command("getnewaddress");
 
-    // Minerar blocos e enviar recompensas para o endereço gerado
     const newBlocks = await client.command(
       "generatetoaddress",
       numBlocks,
@@ -112,7 +138,6 @@ app.post("/mine-blocks", async (req, res) => {
   }
 });
 
-// Endpoint para adicionar fundos a uma carteira
 app.post("/add-funds", async (req, res) => {
   const { address, numBlocks } = req.body;
 
@@ -123,7 +148,6 @@ app.post("/add-funds", async (req, res) => {
   }
 
   try {
-    // Minerar blocos e enviar a recompensa para o endereço especificado
     const newBlocks = await client.command(
       "generatetoaddress",
       numBlocks,
@@ -138,7 +162,6 @@ app.post("/add-funds", async (req, res) => {
   }
 });
 
-// Endpoint para consultar informações de uma carteira
 app.get("/wallet/:address", async (req, res) => {
   const { address } = req.params;
 
@@ -149,11 +172,9 @@ app.get("/wallet/:address", async (req, res) => {
   }
 
   try {
-    // Consultar saldo total disponível no endereço
     const utxos = await client.command("listunspent", 1, 9999999, [address]);
     const balance = utxos.reduce((sum, utxo) => sum + utxo.amount, 0);
 
-    // Opcional: Listar transações associadas ao endereço
     const transactions = utxos.map((utxo) => ({
       txid: utxo.txid,
       amount: utxo.amount,
@@ -163,7 +184,7 @@ app.get("/wallet/:address", async (req, res) => {
     res.json({
       address,
       balance,
-      transactions, // Inclui transações associadas ao endereço
+      transactions,
     });
   } catch (error) {
     res.status(500).json({ error: error.message });
