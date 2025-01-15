@@ -17,7 +17,8 @@ export default function WalletActions({ walletAddress }: WalletActionsProps) {
   const [numBlocks, setNumBlocks] = useState<number>(1);
 
   const sendMutation = useMutation({
-    mutationFn: () => transactionsApi.send(recipientAddress, amount),
+    mutationFn: () =>
+      transactionsApi.send(walletAddress, recipientAddress, amount),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["wallets"] });
       setAmount(0);

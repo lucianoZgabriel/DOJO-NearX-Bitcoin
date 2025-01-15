@@ -16,9 +16,13 @@ export const transactionsApi = {
     }
   },
 
-  send: async (address: string, amount: number) => {
+  send: async (fromAddress: string, toAddress: string, amount: number) => {
     try {
-      const response = await api.post("/send", { address, amount });
+      const response = await api.post("/send", {
+        fromAddress,
+        toAddress,
+        amount,
+      });
       return response.data;
     } catch (error: unknown) {
       if (error instanceof AxiosError) {

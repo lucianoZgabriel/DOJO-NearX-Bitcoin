@@ -23,7 +23,6 @@ export default function WalletsPage() {
   const [newWalletLabel, setNewWalletLabel] = useState("");
   const queryClient = useQueryClient();
 
-  // Mutation para criar carteira
   const createWalletMutation = useMutation({
     mutationFn: (label: string) => walletsApi.create(label),
     onSuccess: () => {
@@ -151,9 +150,7 @@ export default function WalletsPage() {
                               key={tx.txid}
                               className="flex justify-between items-center text-sm"
                             >
-                              <span className="font-mono">
-                                {tx.txid.substring(0, 8)}...
-                              </span>
+                              <span className="font-mono">{tx.txid}</span>
                               <span className="text-neonGreen">
                                 {tx.amount} BTC
                               </span>
