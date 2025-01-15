@@ -19,7 +19,7 @@ export default function StatusPage() {
   return (
     <div className="p-6 max-w-4xl mx-auto">
       <h1 className="text-3xl font-bold text-center mb-8">
-        Status do Nó Bitcoin
+        Bitcoin Node Status
       </h1>
 
       {isLoading && <LoadingSpinner />}
@@ -31,25 +31,25 @@ export default function StatusPage() {
               <strong>Chain:</strong> {nodeStatus.chain}
             </p>
             <p>
-              <strong>Blocos:</strong> {nodeStatus.blocks}
+              <strong>Blocks:</strong> {nodeStatus.blocks}
             </p>
             <p>
               <strong>Headers:</strong> {nodeStatus.headers}
             </p>
             <p>
-              <strong>Melhor Block Hash:</strong> {nodeStatus.bestblockhash}
+              <strong>Best Block Hash:</strong> {nodeStatus.bestblockhash}
             </p>
             <p>
-              <strong>Dificuldade:</strong> {nodeStatus.difficulty}
+              <strong>Difficulty:</strong> {nodeStatus.difficulty}
             </p>
             <p>
-              <strong>Versão:</strong> {nodeStatus.version}
+              <strong>Version:</strong> {nodeStatus.version}
             </p>
             <p>
-              <strong>Versão do Protocolo:</strong> {nodeStatus.protocolversion}
+              <strong>Protocol Version:</strong> {nodeStatus.protocolversion}
             </p>
             <p>
-              <strong>Conexões:</strong> {nodeStatus.connections}
+              <strong>Connections:</strong> {nodeStatus.connections}
             </p>
           </div>
         </div>

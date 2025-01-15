@@ -9,7 +9,7 @@ export const nodeApi = {
     } catch (error: unknown) {
       if (error instanceof AxiosError) {
         throw new Error(
-          error.response?.data?.error || "Erro ao buscar status do nó",
+          error.response?.data?.error || "Error fetching node status",
         );
       }
       throw error;

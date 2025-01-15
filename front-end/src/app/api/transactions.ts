@@ -9,21 +9,25 @@ export const transactionsApi = {
     } catch (error: unknown) {
       if (error instanceof AxiosError) {
         throw new Error(
-          error.response?.data?.error || "Erro ao buscar a transação",
+          error.response?.data?.error || "Error fetching transaction",
         );
       }
       throw error;
     }
   },
 
-  send: async (address: string, amount: number) => {
+  send: async (fromAddress: string, toAddress: string, amount: number) => {
     try {
-      const response = await api.post("/send", { address, amount });
+      const response = await api.post("/send", {
+        fromAddress,
+        toAddress,
+        amount,
+      });
       return response.data;
     } catch (error: unknown) {
       if (error instanceof AxiosError) {
         throw new Error(
-          error.response?.data?.error || "Erro ao enviar transação",
+          error.response?.data?.error || "Error sending transaction",
         );
       }
       throw error;
