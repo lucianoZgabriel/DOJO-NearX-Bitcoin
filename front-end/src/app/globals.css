@@ -61,6 +61,11 @@ button:hover {
   background: var(--secondary);
 }
 
+.wallet-form-button {
+  margin-top: auto !important;
+  align-self: flex-end;
+}
+
 .container {
   max-width: 1200px;
   margin: 0 auto;

@@ -13,11 +13,18 @@ import TransactionDetails from "./components/transactions/TransactionDetails";
 import Link from "next/link";
 import { Blocks, Wallet, Activity, ArrowRight } from "lucide-react";
 import StatCard from "./components/common/StatCard";
+import { walletsApi } from "./api/wallets";
+
+interface Transaction {
+  txid: string;
+  amount: number;
+  confirmations: number;
+}
 
 export default function Home() {
-  const [searchType, setSearchType] = useState<"block" | "transaction" | null>(
-    null,
-  );
+  const [searchType, setSearchType] = useState<
+    "block" | "transaction" | "wallet" | null
+  >(null);
   const [searchQuery, setSearchQuery] = useState<string>("");
 
   const formatLargeNumber = (num: number): string => {
@@ -46,10 +53,17 @@ export default function Home() {
     enabled: searchType === "transaction" && !!searchQuery,
   });
 
-  const handleSearch = (type: "block" | "transaction") => (query: string) => {
-    setSearchType(type);
-    setSearchQuery(query);
-  };
+  const walletQuery = useQuery({
+    queryKey: ["wallet", searchQuery],
+    queryFn: () => walletsApi.getInfo(searchQuery),
+    enabled: searchType === "wallet" && !!searchQuery,
+  });
+
+  const handleSearch =
+    (type: "block" | "transaction" | "wallet") => (query: string) => {
+      setSearchType(type);
+      setSearchQuery(query);
+    };
 
   return (
     <div className="min-h-screen bg-dark">
@@ -120,10 +134,23 @@ export default function Home() {
                   placeholder="Search by transaction ID..."
                   onSearch={handleSearch("transaction")}
                 />
+                <div className="relative">
+                  <div className="absolute inset-0 flex items-center">
+                    <div className="w-full border-t border-white/10"></div>
+                  </div>
+                  <div className="relative flex justify-center">
+                    <span className="px-2 text-sm text-gray-400 bg-dark">
+                      or
+                    </span>
+                  </div>
+                </div>
+                <SearchBar
+                  placeholder="Search by wallet address..."
+                  onSearch={handleSearch("wallet")}
+                />
               </div>
             </div>
           </div>
-
           {/* Search Results */}
           <div className="max-w-4xl mx-auto mt-8">
             {/* Block Results */}
@@ -157,6 +184,59 @@ export default function Home() {
                       Transaction Details
                     </h2>
                     <TransactionDetails transaction={transactionQuery.data} />
+                  </div>
+                )}
+              </>
+            )}
+            {/* Wallet Results - Nova seção */}
+            {searchType === "wallet" && (
+              <>
+                {walletQuery.isLoading && <LoadingSpinner />}
+                {walletQuery.error && (
+                  <ErrorMessage
+                    message={(walletQuery.error as Error).message}
+                  />
+                )}
+                {walletQuery.data && (
+                  <div className="mt-6 p-6 border rounded-xl bg-white/5 backdrop-blur-sm border-white/10 text-left">
+                    <h2 className="text-2xl font-bold mb-4">Wallet Details</h2>
+                    <div className="space-y-4">
+                      <p>
+                        <strong>Address:</strong> {walletQuery.data.address}
+                      </p>
+                      <p>
+                        <strong>Balance:</strong> {walletQuery.data.balance} BTC
+                      </p>
+                      {walletQuery.data.transactions &&
+                        walletQuery.data.transactions.length > 0 && (
+                          <div>
+                            <h3 className="text-xl font-semibold mb-2">
+                              Recent Transactions
+                            </h3>
+                            <div className="space-y-2">
+                              {walletQuery.data.transactions.map(
+                                (tx: Transaction) => (
+                                  <div
+                                    key={tx.txid}
+                                    className="p-2 bg-white/5 rounded"
+                                  >
+                                    <p className="text-sm">
+                                      <strong>TX ID:</strong> {tx.txid}
+                                    </p>
+                                    <p className="text-sm">
+                                      <strong>Amount:</strong> {tx.amount} BTC
+                                    </p>
+                                    <p className="text-sm">
+                                      <strong>Confirmations:</strong>{" "}
+                                      {tx.confirmations}
+                                    </p>
+                                  </div>
+                                ),
+                              )}
+                            </div>
+                          </div>
+                        )}
+                    </div>
                   </div>
                 )}
               </>

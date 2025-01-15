@@ -15,7 +15,7 @@ export default function Navigation() {
       icon: <Search size={18} />,
     },
     {
-      href: "/carteiras",
+      href: "/wallets",
       label: "Wallets",
       icon: <Wallet size={18} />,
     },
